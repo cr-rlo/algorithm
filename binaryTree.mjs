@@ -57,6 +57,20 @@ class BinaryTree{
     this.postOrderTraversal(tree.getRightSubTree()); // 오른쪽 서브트리 방문
     console.log(tree.data); // 현재 노드 방문
   }
+
+  removeLeftSubTree(){
+    let deletingNode = this.leftSubTree;
+    this.setLeftSubTree(null);
+    return deletingNode;
+  }
+  // 왼쪽 서브트리를 제거하는 메서드. 제거된 서브트리를 반환하여 필요에 따라 다른 곳에서 사용할 수 있도록 함
+
+  removeRightSubTree(){
+    let deletingNode = this.rightSubTree;
+    this.setRightSubTree(null);
+    return deletingNode;
+  }
+  // 오른쪽 서브트리를 제거하는 메서드. 제거된 서브트리를 반환하여 필요에 따라 다른 곳에서 사용할 수 있도록 함
 }
 
 export {BinaryTree};
