@@ -222,7 +222,7 @@ class RedBlackTree{
     }
     // 이 밑으로는 currentNode에 제거할 노드가 반드시 저장된 경우
 
-    let repalceNode = null;
+    let replaceNode = null;
     // 대체할 노드를 담을 변수
     let deletingNodeColor = RED;
     // 제거된 노드의 색을 담을 변수
@@ -231,10 +231,37 @@ class RedBlackTree{
 
     // 제거할 노드의 자식 노드가 0~1개인 경우
     if(currentNode.getLeftSubTree() == null || currentNode.getRightSubTree() == null){
-      repalceNode = this.removeWithZeroOrOneChild(currentNode);
+      replaceNode = this.removeWithZeroOrOneChild(currentNode);
       deletingNodeColor = currentNode.color;
-    }else if(){
+    }else{
       // 제거할 노드의 자식 노드가 두 개인 노드 제거
+      let succesor = this.getBiggestNode(currentNode.getLeftSubTree())
+      // 대체할 노드 구하기 => 왼쪽 서브트리에서 가장 큰 값
+      currentNode.setData(succesor,getData());
+      // 현재 노드의 값을 대체할 노드의 값으로 덮어써 줌
+      // 이 과정을 거치면 제거하려는 값이 두 개, 즉 중복됨 -> 대체할 노드의 원본을(succesor) 지워주면 해결
+      // 가장 큰 노드(succesor)은 자식 노드가 1개 이하로 있을 것이므로 이전에 구현했던 removeWithZeroOrOneChild 함수로 제거
+      replaceNode = this.removeWithZeroOrOneChild(succesor);
+      // removeWithZero-함수가 끝나고 나면 새롭게 자식이 된 노드가 반환되기 때문에 그 값을 replaceNode에 저장
+      deletingNodeColor = currentNode.color;
+      // 제거한 노드의 색도 저장
+      
+
+    }
+
+    // 제거한 노드가 빨간색인 경우에는 문제가 되지 않지만 검은색인 경우 규칙을 위반할 수 있기 때문에 색을 맞춰줘야함
+    if(deletingNodeColor == BLACK){
+      // 형제 노드를 보면서 다섯가지 경우 해결
+      this.rebalanceAfterDeletion(replaceNode);
+      // 대체할 노드를 인자로 넘겨주며 제거 후 균형을 맞춰주는 함수 호출
+
+
+      // 제거를 수행하며 null을 nilnode로 만들어 줬던 경우, 그것을 다시 null로 되돌리기
+      if (replaceNode instanceof NilNode){
+        // replaceNode가 NilNode 클래스로 부터 생성된 인스턴스인지 확인
+        this.replaceParentsChild(replaceNode.getParent(), replaceNode, null)
+
+      }
     }
 
   }
@@ -274,6 +301,132 @@ class RedBlackTree{
 
     // while 문을 종료하면 node에는 가장 큰 값의 노드 저장
   }
+
+
+  rebalanceAfterDeletion(node){
+    // 매개변수 node는 대체된 노드를 담고 있음
+    if(node == this.root){
+      node.color == BLACK;
+      return;
+      // 대체할 노드가 루트 노드인 경우 색을 바꿔주고 함수 종료
+
+    }
+    let sibling = this.getSibling(node);
+    // 대체할 노드의 형제 노드 구하기
+
+    // 1. 형제 노드가 빨간색인 경우 처리하기
+    if(sibling.color == RED){
+      this.handleRedSibling(node, sibling);
+      sibling = this.getSibling(node);
+      // 새로 바뀐 형제를 업데이트해서 나머지 경우에 해당하는 경우 또 그 경우를 거쳐 완벽하게 균형이 잡히도록 함
+      // 회전을 거치고 나면 형제 노드가 업데이트 됨
+    }
+
+    // 2.~5. 형제 노드가 검은색인 경우
+    if(this.isBlack(sibling)){
+      // 2. 제거할 노드의 형제 노드와 형제 노드의 두 자식 노드가 검은색이고 부모 노드는 빨간색인 경우
+      if(this.isBlack(sibling.getLeftSubTree()) && this.isBlack(sibling.getRightSubTree())){
+        if(node.getParent().color == RED){
+          sibling.color = RED;
+          node.getParent().color = BLACK;
+        }else{
+          // 3. 제거할 노드의 형제 노드와 형제 노드의 두 자식 노드가 검은색이고 부모 노드는 검은색인 경우
+          sibling.color = RED;
+          this.rebalanceAfterDeletion(node.getParent());
+        }
+
+      }else{
+        // 4. 형제 노드가 검은색이고 형제의 두 자식 노드 중 하나라도 빨간색 노드가 있고 바깥쪽 조카 노드가 검은색인 경우
+        this.handleBlackSiblingWithAtLeastOneRedChild(node, sibling);
+      }
+    }
+
+
+  }
+
+  getSibling(node){
+    // 매개변수 node는 대체된 노드를 담고 있음
+    // 형제노드는 부모 노드의 자식 중에 자신이 아닌 노드
+    let parent = node.getParent();
+    // 대체한 노드의 부모노드 저장
+
+    if(node == parent.getLeftSubTree()){
+    // 대체한 노드가 부모노드의 왼쪽 자식 노드라면 오른쪽 자식 노드가 형제 노드
+      return parent.getRightSubTree();
+
+    }else if(node == parent.getRightSubTree()){
+      // 현재 노드가 부모노드의 오른쪽 자식 노드라면 왼쪽 자식 노드가 형제 노드
+      return parent.getLeftSubTree();
+    }
+
+  }
+
+  handleRedSibling(node, sibling){
+    // 매개변수 node는 대체된 노드
+    // sibling은 형제 노드
+    sibling.color = BLACK;
+    // 먼저 형제 노드를 검은색으로 바꾸고
+    node.getParent().color = RED;
+    // 부모 노드를 빨간색으로 바꿈
+
+    // 그리고 부모노드를 대체된 노드의 방향쪽으로 회전
+    if(node.getParent().getLeftSubTree() == node){
+      // 대체된 노드가 부모 노드의 왼쪽 노드라면
+      this.rotateLeft(node.getParent());
+      // 부모 노드를 왼쪽으로 회전
+    } else{
+      // 대체된 노드가 오른쪽 노드라면
+      this.rotateRight(node.getParent());
+      // 부모 노드를 오른쪽으로 회전
+    }
+
+
+  }
+  handleBlackSiblingWithAtLeastOneRedChild(node, sibling){
+    let nodeIsLeftChild = (node.getParent().getLeftSubTree() == node);
+    // 대체되는 노드가 부모노드의 왼쪽 자식 노드인지 확인(true or false 저장)
+    if(nodeIsLeftChild && this.isBlack(sibling.getRightSubTree())){
+      // 대체되는 노드가 부모노드의 왼쪽 자식노드이고 형제노드의 오른쪽 자식노드(바깥쪽 조카노드)가 검은색인 경우
+      sibling.getLeftSubTree().color = BLACK;
+      // 안쪽 조카노드를 검은색으로 바꿔주고
+      sibling.color = RED;
+      // 형제노드를 빨간색으로 바꿔줌
+      this.rotateRight(sibling);
+      // 형제 노드를 오른쪽 회전
+      sibling = node.getParent().getRightSubTree();
+      // 한 번더 균형을 맞춰주기 위해 형제 노드 업데이트 된대로 변경
+      
+    }else if(nodeIsLeftChild == false && this.isBlack(sibling.getLeftSubTree())){
+      // 대체되는 노드가 부모노드의 오른쪽 자식 노드이고 형제 노드의 왼쪽 자식 노드(바깥쪽 조카노드)가 검은색인 경우
+      sibling.getRightSubTree().color = BLACK;
+      // 안쪽 조카노드를 검은색으로 바꿔주고
+      sibling.color = RED;
+      // 형제노드를 빨간색으로 바꿔줌
+      this.rotateLeft(sibling);
+      // 형제 노드를 왼쪽 회전
+      sibling = node.getParent().getLeftSubTree();
+      // 한 번더 균형을 맞춰주기 위해 형제 노드 업데이트 된대로 변경
+    }
+
+    // 형제 노드가 검은색이고 형제의 두 자식 노드 중 하나라도 빨간색 노드가 있고 바깥쪽 조카노드가 빨간색인 경우 => 위의 과정을 거친 트리
+    sibling.color = node.getParent().color;
+    node.getParent().color = BLACK;
+
+
+    if(nodeIsLeftChild){
+      // '대체되는 노드'가 부모노드의 왼쪽 자식 노드라면, 즉 오른쪽으로 뻗은 트리라면
+      sibling.getRightSubTree().color = BLACK;
+      this.rotateLeft(node.getParent());
+      // 부모 노드를 왼쪽으로 회전
+    }else{
+      // 대체되는 노드가 부모노드의 오른쪽 자식 노드라면, 즉 왼쪽으로 뻗은 트리라면
+      sibling.getLeftSubTree().color = BLACK;
+      this.rotateRight(node.getParent());
+
+    }
+
+  }
+
 }
 
 
@@ -296,7 +449,14 @@ rbTree.insert(19);
 rbTree.insert(75);
 rbTree.insert(85);
 
+rbTree.remove(19);
+rbTree.remove(75);
+rbTree.remove(85);
+
+
+
 console.log(rbTree.root);
 if(rbTree.root){
   rbTree.root.inOrderTraversal(rbTree.root);
 }
+
