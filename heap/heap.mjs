@@ -58,15 +58,15 @@ class Heap{
 
   isBigPriority(first, second){
     // 최소 힙에서 더 작은 데이터가 우선 순위가 높음
-    // first가 second보다 작은 경우에 true를 리턴해 우선순위가 더 높다는 것을 알려줌
-    return (first < second);
+    // first와 second는 정수형 변수가 아니라 클래스의 인스턴스이기 때문에 단순히 first와 second를 비교하는 것이 아니라 person 내부의 priority로 비교해줌 
+    return (first.priority < second.priority);
+    // first.priority가 더 작을 때 true를 리턴하니 나이가 작을수록 우선순위가 높게 설정됨
   }
 
   getInsertingParent(){
     // 1. lastIsertedNode가 루트노드인 경우
       if(this.lastInsertedNode.getParent() == null){
         return this.lastInsertedNode;
-
       }else{
       // 2. lastInsertedNode가 부모노드의 왼쪽 자식노드인 경우
        if(this.lastInsertedNode == this.lastInsertedNode.getParent().getLeftSubTree()){
@@ -94,7 +94,7 @@ class Heap{
 
           if(firstRightSibling != null){
             // 3.a. 부모 노드 중에서 만약 오른쪽 형제 노드가 존재한다면
-            while(firstRightSibling.getLeftSubTree()){
+            while(firstRightSibling.getLeftSubTree() != null){
               // 오른쪽 형제 노드의 왼쪽 자식 노드로 계속 내려감
               firstRightSibling = firstRightSibling.getLeftSubTree();
             }
@@ -114,27 +114,27 @@ class Heap{
     
   }
 
-  getRightSibling(node){
+getRightSibling(node){
    // node매개변수는 현재 노드를 나타냄
-   if(node != node.getParent().getRightSubTree()){
+  if(node.getParent().getRightSubTree() != node){
     // 현재 노드가 현재 노드의 부모노드의 오른쪽 자식 노드가 아니라면 왼쪽 자식 노드라는 의미
     return node.getParent().getRightSubTree();
-   } 
+  }
     // 그렇지 않은 경우는 현재 노드가 부모 노드의 오른쪽 자식 노드라는 의미이미로 null 리턴
     return null;
    
-  }
-  getLeftSibling(node){
+ }
+getLeftSibling(node){
     // node매개변수는 현재 노드를 나타냄
-   if(node != node.getParent().getLefttSubTree()){
+  if(node.getParent().getLeftSubTree() != node){
     // 현재 노드가 현재 노드의 부모노드의 왼쪽 자식 노드가 아니라면 오른쪽 자식 노드라는 의미
-    return node.getParent().getLeftSubTree();
-   } 
+      return node.getParent().getLeftSubTree();
+  }
     // 그렇지 않은 경우는 현재 노드가 부모 노드의 왼쪽 자식 노드라는 의미이미로 null 리턴
     return null;
    
 
-  }
+ }
 
   remove(){
     let deletedNode = null;
@@ -161,9 +161,8 @@ class Heap{
     // 그리고 마지막에 삽입된 노드를 힙에서 제거
     if(this.lastInsertedNode.getParent().getLeftSubTree() == this.lastInsertedNode){
       // 만약 마지막으로 삽입된 노드가 부모노드의 왼쪽 자식 노드라면
-      this.lastInsertedNode.getParent().setLefttSubTree(null);
+      this.lastInsertedNode.getParent().setLeftSubTree(null);
       // 그 값을 null로 만들고
-
     }else{
       // 그렇지 않고 마지막으로 삽입된 노드가 부모노드의 오른쪽 자식 노드라면
       this.lastInsertedNode.getParent().setRightSubTree(null);
@@ -240,7 +239,7 @@ class Heap{
       // 마지막 삽입 위치부터 순회하므로 current를 lastInsertedNode로 초기화
       let firstLeftSibling = null;
 
-      while(current.getParent().getParent() == null){
+      while(current.getParent().getParent() != null){
         // current의 부모 노드의 부모노드가 null일 때 까지. 즉, 루트노드의 자식 노드에 갈 때까지 반복
         current = current.getParent();
         firstLeftSibling = this.getLeftSibling(current);
@@ -255,7 +254,7 @@ class Heap{
       if(firstLeftSibling != null){
         // 1.a. 부모 노드 중에 왼쪽 형제 노드가 존재하는 경우
         // 왼쪽 형제 노드의 오른쪽 자식 노드가 Null일 때까지 오른쪽으로 내려가줌
-        while(firstLeftSibling.getRightSubTree() = null){
+        while(firstLeftSibling.getRightSubTree() != null){
           firstLeftSibling = firstLeftSibling.getRightSubTree();
           
         }
@@ -283,15 +282,13 @@ class Heap{
 
 }
 
-let heap = new Heap();
-heap.insert(4);
-heap.insert(2);
-heap.insert(5);
-heap.insert(7);
-heap.insert(1);
+class Person{
+  constructor(name, age){
+    this.name = name;
+    this.age = age;
+    this.priority = age;
+  }
 
-heap.root.inOrderTraversal(heap.root);
-console.log(heap.root);
+}
 
-console.log("==== remove ====")
-console.log(heap.remove());
+export {Heap};
