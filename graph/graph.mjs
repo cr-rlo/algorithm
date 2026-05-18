@@ -1,3 +1,5 @@
+import {Queue} from "./../Queue.mjs";
+
 class Vertex{
   // 정점을 표현하는 클래스
   constructor(value){
@@ -51,6 +53,43 @@ function DFS(vertex, visited_vertices = {}){
   }
 }
 
+function BFS(vertex){
+// 너비 우선 탐색
+// 재귀가 없으므로 시작할 정점만 매개변수로 받음
+  let queue = new Queue();
+  // 빈 큐 생성
+  let visited_vertices = [];
+  // 방문할 정점들을 저장할 해시테이블 생성
+
+  visited_vertices[vertex.value] = true;
+  queue.enqueue(vertex);
+
+
+  while(queue.isEmpty() == false){
+    // 큐가 빌 때까지 반복
+    let currentVertex = queue.dequeue().data;
+    // 먼저 큐에서 정점 한 개를 dequeue
+
+    console.log(`정점: ${currentVertex.value}`);
+
+    for(let adjacent of currentVertex.adjacent_vertices){
+      // 현재 정점의 인접 정점들을 순회
+      if(visited_vertices[adjacent.value]){
+        // 순회하는 정점이 이미 방문한 정점이라면
+        continue;
+        // 아무것도 하지 않고 넘어감
+
+      }else{
+        visited_vertices[adjacent.value] = true;
+        queue.enqueue(adjacent);
+
+      }
+    }
+
+  }
+
+}
+
 let ben = new Vertex("Ben");
 let ivy = new Vertex("Ivy");
 let joy = new Vertex("Joy");
@@ -82,9 +121,10 @@ elin.addAdjacentVertex(owen);
 
 owen.addAdjacentVertex(elin);
 
-DFS(ben);
-// ben을 대상으로 깊이우선탐색
 
+
+
+BFS(ben);
 
 
 
