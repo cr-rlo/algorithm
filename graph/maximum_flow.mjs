@@ -83,4 +83,63 @@ class MaximumFlow{
     return false;
     // 모든 인접 도시를 전부 시도했는데 경로가 없다면 false룰 리턴하며 함수 종료
   }
+
+  FordFulkerson(source, sink){
+    // 최대 유량ㅇ르 구하는 함수
+    // 매개변수는 시작점인 source와 목적지인 sink
+    let total = 0;
+    // 최대 유량을 저장할 total 변수는 0으로 초기화
+    while(this.DFS(source, sink)){
+      // 증가 경로를 찾을 수 없을 때까지 깊이 우선 탐색 반복
+      // while문의 조건에서 DFS 함수를 호출하면 paths 프로퍼티에는 한 개의 증가 경로가 저장됨
+      this.paths.push(sink);
+      // 증가 경로의 마지막인 sink도 경로에 추가
+      let currentPathFlow = Infinity;
+      // 현재 증가경로의 최대 유량을 저장할 currentPathFlow 변수는 무한대로 초기화
+      for(let i = 0; i < this.paths.length - 1; i++){
+        // 증가 경로를 순회하면서 최대 유량을 계산
+        let currentCity = this.paths[i];
+        let nextCity = this.paths[i + 1];
+        // 증가 경로에서 현재 도시와 다음 도시 구하기
+        let edge = currentCity.adjacent_cities[nextCity.name];
+        // 현재 도시에서 다음 도시로 가는 간선 구하기
+        currentPathFlow = Math.min(currentPathFlow, (edge.capacity - edge.flow));
+        // 현재 증가 경로의 최대 유량은 간선의 잔여 용량이므로 currentPathFlow는 간선의 잔여 용량과 이전에 구한 currentPathFlow 중에서 작은 값으로 업데이트
+      }
+      for(let i = 0; i < this.paths.length - 1; i++){
+        // 증가 경로를 순회하면서 간선의 유량 업데이트
+        let currentCity = this.paths[i];
+        let nextCity = this.paths[i + 1];
+        // 증가 경로에서 현재 도시와 다음 도시 구하기
+        currentCity.adjacent_cities[nextCity.name].flow += currentPathFlow;
+        // 현재 도시에서 다음 도시로 가는 간선의 유량을 currentPathFlow만큼 증가
+        nextCity.adjacent_cities[currentCity.name].flow -= currentPathFlow;
+        // 역방향 간선의 유량은 currentPathFlow만큼 감소
+      }
+      total += currentPathFlow;
+      // 최대 유량을 저장하는 total에 currentPathFlow만큼 더하기
+      this.paths = [];
+      // 증가 경로를 저장하는 paths는 초기화해서 다음 증가 경로를 찾을 때 비어있는 상태로 시작하도록 함
+    }
+    console.log(total);
+  }
 }
+
+let city1 = new City("city1");
+let city2 = new City("city2");
+let city3 = new City("city3");
+let city4 = new City("city4");  
+
+let maximum_flow = new MaximumFlow();
+maximum_flow.registerCity(city1);
+maximum_flow.registerCity(city2);
+maximum_flow.registerCity(city3);
+maximum_flow.registerCity(city4);
+
+city1.addAdjacentCity(city2, {flow: 0, capacity: 1});
+city1.addAdjacentCity(city3, {flow: 0, capacity: 2});
+city2.addAdjacentCity(city3, {flow: 0, capacity: 1});
+city2.addAdjacentCity(city4, {flow: 0, capacity: 2});
+city3.addAdjacentCity(city4, {flow: 0, capacity: 2});
+
+maximum_flow.FordFulkerson(city1, city4);
